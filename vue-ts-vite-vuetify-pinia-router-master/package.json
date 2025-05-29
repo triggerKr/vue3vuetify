@@ -22,7 +22,9 @@
     "webfontloader": "^1.0.0"
   },
   "devDependencies": {
+    "@types/axios": "^0.9.36",
     "@types/lodash": "^4.17.17",
+    "@types/node": "^22.15.24",
     "@types/webfontloader": "^1.0.0",
     "@vitejs/plugin-vue": "^5.2.4",
     "sass": "^1.53.0",
