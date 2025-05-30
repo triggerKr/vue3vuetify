@@ -55,20 +55,97 @@ import exdev.com.service.ExcelService;
 import exdev.com.service.ExdevSampleService;
 import exdev.com.service.FileService;
 
-/**
- * This MovieController class is a Controller class to provide movie crud and
- * genre list functionality.
- * 
- * @author 위성열
- */
 @RestController
 public class TESTController {
 	
-    @SuppressWarnings({ "unused", "rawtypes" })
-	@RequestMapping("/hello")
+     // 1. 간단 GET - Map으로 응답
+    @GetMapping("/hello")
     public Map<String, String> hello() {
         return Map.of("message", "안녕하세요, 태원님!");
     }
 
+    // 2. POST - 문자열 본문 그대로 받기, 문자열 응답
+    @PostMapping("/echo")
+    public String echoMessage(@RequestBody String message) {
+        return "당신이 보낸 메시지: " + message;
+    }
+
+    // 3. POST - Map으로 유연하게 받기, 에러 처리 포함, JSON 객체 응답
+    @PostMapping("/user")
+    public ResponseEntity<?> greetUser(@RequestBody Map<String, Object> userMap) {
+        String name = (String) userMap.get("name");
+        Integer age = null;
+
+        try {
+            Object ageObj = userMap.get("age");
+            if (ageObj instanceof Number) {
+                age = ((Number) ageObj).intValue();
+            } else if (ageObj instanceof String) {
+                age = Integer.parseInt((String) ageObj);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "나이 값이 올바르지 않습니다."));
+        }
+
+        if (age == null || age < 0) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "나이는 0보다 커야 합니다."));
+        }
+
+        return ResponseEntity.ok(Map.of("name", name, "age", age));
+    }
+
+    // 4. POST - User DTO 클래스로 받기
+    @PostMapping("/user/dto")
+    public ResponseEntity<?> greetUserDto(@RequestBody User user) {
+        if (user.getAge() == null || user.getAge() < 0) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "나이는 0보다 커야 합니다."));
+        }
+        return ResponseEntity.ok(user);
+    }
+
+    // 5. GET - PathVariable 사용 예제
+    @GetMapping("/user/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable("id") Long id) {
+        // 예: id가 1이면 존재, 아니면 404
+        if (id == 1L) {
+            User user = new User("태원", 45);
+            return ResponseEntity.ok(user);
+        } else {
+            return ResponseEntity.status(404)
+                    .body(Map.of("error", "사용자를 찾을 수 없습니다."));
+        }
+    }
+
+    // 6. GET - Query Parameter 사용 예제
+    @GetMapping("/search")
+    public Map<String, String> search(@RequestParam String keyword) {
+        // 단순 예제: 받은 키워드 그대로 반환
+        return Map.of("검색어", keyword);
+    }
+
+    // 7. POST - List 형태 받기 (예: 여러 User 객체)
+    @PostMapping("/users")
+    public ResponseEntity<?> receiveUserList(@RequestBody List<User> users) {
+        if (users == null || users.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "사용자 목록이 비어있습니다."));
+        }
+        return ResponseEntity.ok(Map.of("count", users.size(), "users", users));
+    }
+
+    // 8. DELETE - PathVariable로 삭제 예제
+    @DeleteMapping("/user/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        // 예제: id가 1 이상이면 삭제 성공
+        if (id >= 1) {
+            return ResponseEntity.ok(Map.of("message", "사용자 삭제 성공: id=" + id));
+        } else {
+            return ResponseEntity.status(400)
+                    .body(Map.of("error", "유효하지 않은 사용자 ID입니다."));
+        }
+    }
 
 }
